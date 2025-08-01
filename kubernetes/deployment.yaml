@@ -5,7 +5,7 @@ metadata:
   labels:
     app: $APP_NAME
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: $APP_NAME
@@ -15,10 +15,10 @@ spec:
         app: $APP_NAME
     spec:
       imagePullSecrets:
-        - name: my-registry-key
+        - name: aws-registry-key
       containers:
         - name: $APP_NAME
-          image: okoro/demo-java-app:java-mav-$IMAGE_NAME
+          image:  $DOCKER_REPO:$IMAGE_NAME
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
