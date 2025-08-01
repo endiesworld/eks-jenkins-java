@@ -9,11 +9,16 @@ pipeline {
         DOCKER_REPO_SERVER = '571600874279.dkr.ecr.us-west-2.amazonaws.com'
         DOCKER_REPO = "${DOCKER_REPO_SERVER}/java-maven-app"
     }
-    stages {
-        stage('increment version') {
+    stage('increment version') {
             steps {
                 script {
                     echo 'incrementing app version...'
+                    sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit'
+                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+                    def version = matcher[0][1]
+                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
                 }
             }
         }
@@ -21,6 +26,7 @@ pipeline {
             steps {
                 script {
                     echo 'building the application...'
+                    sh 'mvn clean package'
                 }
             }
         }
@@ -28,6 +34,12 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image..."
+                    def DOCKER_REPO = 'okoro/demo-java-app:java-mav-'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                        sh "docker build -t ${DOCKER_REPO}${IMAGE_NAME} ."
+                        sh 'echo $PASS | docker login -u $USER --password-stdin ${DOCKER_REPO_SERVER}'
+                        sh "docker push ${DOCKER_REPO}${IMAGE_NAME}"
+                    }
                 }
             }
         }
@@ -39,11 +51,13 @@ pipeline {
             }
             steps {
                 script {
-                    echo 'deploying docker image...'
-                    sh 'kubectl create deployment nginx-deployment --image=nginx'
+                   echo 'deploying docker image...'
+                   sh 'envsubst < kubernetes/deployment.yaml | kubectl apply -f -'
+                   sh 'envsubst < kubernetes/service.yaml | kubectl apply -f -'
                 }
             }
         }
+
         stage('commit version update') {
             steps {
                 script {
@@ -52,4 +66,4 @@ pipeline {
             }
         }
     }
-}
+
