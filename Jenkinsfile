@@ -14,7 +14,6 @@ pipeline {
             steps {
                 script {
                     echo 'incrementing app version...'
-                    
                 }
             }
         }
@@ -22,7 +21,6 @@ pipeline {
             steps {
                 script {
                     echo 'building the application...'
-                
                 }
             }
         }
@@ -30,8 +28,6 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image..."
-                      
-                    }
                 }
             }
         }
@@ -43,19 +39,17 @@ pipeline {
             }
             steps {
                 script {
-                   echo 'deploying docker image...'
-                   sh 'kubectl create deployment nginx-deployment --image=nginx'
+                    echo 'deploying docker image...'
+                    sh 'kubectl create deployment nginx-deployment --image=nginx'
                 }
             }
         }
-        stage('commit version update'){
+        stage('commit version update') {
             steps {
                 script {
-                    sh "echo 'committing version update...'"
+                    echo 'committing version update...'
                 }
             }
         }
     }
-
-
-
+}
