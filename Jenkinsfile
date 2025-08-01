@@ -31,6 +31,7 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image..."
+                    def DOCKER_REPO = 'okoro/demo-java-app:java-mav-'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]){
                         sh "docker build -t ${DOCKER_REPO}:${IMAGE_NAME} ."
                         sh 'echo $PASS | docker login -u $USER --password-stdin ${DOCKER_REPO_SERVER}'
