@@ -1,15 +1,20 @@
 #!/usr/bin/env groovy
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
-        [$class: 'GitSCMSource',
-        remote: 'https://gitlab.com/twn-devops-bootcamp/latest/08-jenkins/jenkins-shared-library.git',
-        credentialsId: 'gitlab-credentials'])
+library identifier: 'jenkins-shared-library@main', retriever: modernSCM([
+    $class: 'GitSCMSource',              // use Git source
+    id: 'jenkins-shared-library',        // unique ID for tracking
+    remote: 'https://github.com/endiesworld/jenkins-shared-library.git',
+    credentialsId: 'github-PAT',         // your GitHub token in Jenkins
+    // traits: [
+    //     [$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']  // This is the fix!
+    // ]
+])
 
 def gv
 
 pipeline {   
     agent any
     tools {
-        maven 'Maven'
+        maven 'maven-3.9'
     }
     stages {
         stage("init") {
@@ -31,9 +36,9 @@ pipeline {
         stage("build and push image") {
             steps {
                 script {
-                    buildImage 'nanatwn/demo-app:jma-3.0'
+                    buildImage 'okoro/demo-app:java-maven-3.0'
                     dockerLogin()
-                    dockerPush 'nanatwn/demo-app:jma-3.0'
+                    dockerPush 'okoro/demo-app:java-maven-3.0'
                 }
             }
         }
